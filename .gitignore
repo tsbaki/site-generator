@@ -1,3 +1,6 @@
+output/
+pages/
+*.yaml
 *.gem
 *.rbc
 /.config
