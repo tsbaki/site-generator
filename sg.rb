@@ -38,6 +38,18 @@ class Page
       "<h2 class='header-2'>#{content}</h2>"
     when "header-3"
       "<h3 class='header-3'>#{content}</h3>"
+    when "image"
+      fig = content.split('|', 2)
+      if fig.count() > 1
+        FileUtils.cp(fig[0], "#{OUTPUT_DIR}/#{fig[0]}")
+        return "<figure>" +
+        "<img class='image' src='#{fig[0]}'/>" +
+        "<figcaption class='fig'>#{fig[1]}</figcaption>" +
+        "</figure>"
+      else
+        FileUtils.cp(content, "#{OUTPUT_DIR}/#{content}")
+        "<img class='image' src='#{content}'/>"
+      end
     when "text"
       "<p class='text'>#{content}</p>"
     when "post"
@@ -130,8 +142,9 @@ class Site
     )
     output += css(
       "main, header {
-        max-width: 500px;
+        max-width: 600px;
         margin: auto;
+        margin-bottom: 10px;
         background: white;
         padding 10px;
         border: 3px groove black; 
@@ -146,6 +159,22 @@ class Site
     output += css(
       "main > .post, .header-1, .header-2, .header-3 {
         margin: 10px;
+      }"
+    )
+    output += css(
+      ".image {
+        margin: auto;
+        display: block;
+        width: 500px;
+        height: 300px;
+      }"
+    )
+    output += css(
+      ".fig {
+        font-size: 12px;
+        margin: auto;
+        display: block;
+        width: 500px;
       }"
     )
     File.open("#{OUTPUT_DIR}/style.css", "w") do |f|
