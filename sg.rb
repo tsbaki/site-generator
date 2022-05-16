@@ -96,13 +96,21 @@ class MenuItem
 end
 
 class Site
-  def initialize(pages, menu, style_path)
+  def initialize(pages, menu, style_path, meta_path)
     @pages = pages
     @menu = menu
     @style_path = style_path
+    @meta_path = meta_path
   end
   def output_meta_data
     output = "<head>"
+    if not @meta_path.nil? 
+      if File.exist?(@meta_path)
+        meta = YAML.load_file(@meta_path)
+        meta = meta['meta']
+        output += meta
+      end
+    end
     if not @style_path.nil? 
       if File.exist?(@style_path)
         FileUtils.cp(@style_path, "#{OUTPUT_DIR}/style.css")
@@ -123,10 +131,11 @@ class Site
       html += @menu.output_html
       html += page.output_html
       html += "</html>"
-      page_name = page.name.slice(0..(page.name.index('.')))
-      File.open("#{OUTPUT_DIR}/#{page_name}html", "w") do |f|
+      page_name = "#{page.name.slice(0..(page.name.index('.')))}html"
+      File.open("#{OUTPUT_DIR}/#{page_name}", "w") do |f|
         f.truncate(0)
         f.write(html)
+        p "Generated: #{page_name}"
       end
     end
   end
@@ -187,7 +196,7 @@ class Site
   end
 end
 
-def build_site(menu_file, pages_dir, style_path)
+def build_site(menu_file, pages_dir, style_path, meta_path)
   Dir.mkdir(OUTPUT_DIR) unless Dir.exist?(OUTPUT_DIR)
   menu = Menu.new
   menu_yaml = YAML.load_file(menu_file)
@@ -203,7 +212,7 @@ def build_site(menu_file, pages_dir, style_path)
       pages.push(page)
     end
   }
-  site = Site.new(pages, menu, style_path)
+  site = Site.new(pages, menu, style_path, meta_path)
   site.generate
 end
 
@@ -212,9 +221,10 @@ def main
   OptionParser.new do |opt|
     opt.on('--menu MENU_FILE') { |o| options[:m_file] = o }
     opt.on('--dir FILE_DIR') { |o| options[:file_d] = o }
+    opt.on('--meta META_FILE') { |o| options[:meta_f] = o }
     opt.on('--stylesheet STYLESHEET') { |o| options[:style_path] = o }
   end.parse!
-  build_site(options[:m_file], options[:file_d], options[:style_path])
+  build_site(options[:m_file], options[:file_d], options[:style_path], options[:meta_f])
 end
 
 main
